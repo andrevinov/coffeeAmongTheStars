@@ -1,0 +1,42 @@
+# Run the tools installed in this project's Poetry environment.
+minimum_pre_commit_version: "4.4.0"
+default_stages: [pre-commit]
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff (lint and fix)
+        entry: poetry run ruff check --fix --force-exclude
+        language: unsupported
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: ruff-format
+        name: Ruff (format)
+        entry: poetry run ruff format --force-exclude
+        language: unsupported
+        types_or: [python, pyi]
+        require_serial: true
+
+      - id: pyright
+        name: Pyright (project type check)
+        entry: poetry run pyright
+        language: unsupported
+        # Preserve the file scope defined by the project's Pyright configuration.
+        pass_filenames: false
+        # Also check commits that change configuration, dependencies, or delete files.
+        always_run: true
+        require_serial: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-merge-conflict
+        args: [--assume-in-merge]
+
+      - id: check-yaml
+
+      - id: check-toml
+
+      - id: check-added-large-files
+        args: [--maxkb=10240]

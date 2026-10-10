@@ -1,0 +1,2186 @@
+# AGENTS.md — Coffee Among the Stars
+
+## Purpose
+
+This repository is developed simultaneously as:
+
+1. a real software project;
+2. a deliberate Clean Architecture learning environment;
+3. a practical environment for learning mathematics, numerical simulation, and browser game development.
+
+The primary development objective is **understanding**, rather than implementation speed.
+
+The product must also become a working, enjoyable game. Architecture and mathematics should serve that experience, not become substitutes for it.
+
+The primary objective is to understand why every architectural decision, abstraction, function, class, fixture, test, dependency, integration, documentation change, and refactoring exists before introducing the next one.
+
+Development MUST therefore proceed incrementally, with exactly:
+
+> **one conceptual unit at a time**
+
+At the same time, the agent MUST maintain a coherent architectural understanding of where the project is probably going.
+
+Therefore:
+
+> **Planning may look far ahead. Implementation may not.**
+
+The agent must have a roadmap.
+
+The roadmap guides decisions.
+
+The roadmap does NOT authorize implementation.
+
+This rule takes precedence over:
+
+* implementation speed;
+* convenience;
+* feature completeness;
+* automation opportunities;
+* architectural symmetry;
+* large refactors;
+* finishing an entire feature in one pass.
+
+The architecture should emerge slowly enough that the user can understand and eventually predict it.
+
+---
+
+## Project Context
+
+**Coffee Among the Stars** is a cozy, browser-based space exploration game for an international audience.
+
+The intended experience combines real astronomical destinations and data, peaceful journeys, a comfortable cockpit, coffee, and carefully selected slow music. A player should be able to enjoy the atmosphere while studying or relaxing and return to meaningful journey progress.
+
+This is product direction, not a statement that these features already exist and not permission to implement them all.
+
+### Language and repository scope
+
+* Use English for code identifiers, repository documentation, commit messages, and player-facing text by default.
+* Explain development decisions to the user in Portuguese unless they request another language.
+* Keep the website and game in the same repository initially, with boundaries introduced only when their responsibilities require them.
+* English is the initial product language. Other languages belong in the roadmap until requested; do not build a localization framework speculatively.
+* A public repository does not require putting every production asset in Git. Asset distribution must follow the permissions applicable to each asset.
+
+### Current technical direction
+
+* Python is the intended home for scientific calculations, astronomical data preparation, and simulation models.
+* TypeScript is the intended browser language for the interface, rendering, audio, and local playback of journeys.
+* Keep the mathematical model understandable independently of the visual presentation.
+* The browser must not require an API request for every rendered frame.
+* An always-running Python process per player is not the default design.
+* Whether Python runs during data preparation, on demand through a service, or through another justified integration remains a revisable deployment decision.
+* No rendering engine, UI framework, database, API server, paid service, or deployment platform is mandated merely by this direction.
+
+### Player experience
+
+Calm pacing, comfortable audio, clear controls, and a reliable return to a journey are product concerns. Visual spectacle alone is not the goal.
+
+Badges, additional destinations, monetization, accounts, and other extensions are possible roadmap items. Their mention here does not authorize implementation.
+
+The Earth–Moon route may be useful as an early, bounded example. It is not a fixed implementation order or a requirement to build a complete journey in one step.
+
+### Applying these instructions
+
+These instructions define the default learning workflow. Explicit user instructions take precedence, including a clearly authorized, named group of conceptual units.
+
+A clear request to implement the current unit already supplies implementation permission. Do not ask for the same permission again. Questions or requests for a proposal alone do not authorize changes.
+
+Do not reinterpret this document as permission to contact other people, publish a release, purchase assets, change licensing, commit, or push. Follow the user's actual authorization for those actions.
+
+---
+
+# 1. Prime Directive
+
+When forced to choose between:
+
+* faster delivery and better understanding;
+* complete implementation and smaller understandable steps;
+* architectural elegance and visible reasoning;
+* automation and pedagogy;
+
+always choose:
+
+**better understanding, smaller steps, and visible reasoning.**
+
+The development rhythm is:
+
+```text
+PLAN THE DIRECTION
+       ↓
+PROPOSE ONE THING
+       ↓
+UNDERSTAND IT
+       ↓
+IMPLEMENT IT
+       ↓
+VERIFY IT
+       ↓
+REVIEW IT
+       ↓
+COMMIT / PUSH CHECKPOINT
+       ↓
+REASSESS THE PLAN
+       ↓
+ONLY THEN CONSIDER THE NEXT THING
+```
+
+---
+
+# 2. The Roadmap Is Mandatory
+
+Before substantial implementation begins, the agent MUST form a coherent implementation roadmap.
+
+The agent must not walk blindly from one local decision to another.
+
+The roadmap exists to answer questions such as:
+
+* What major capabilities will probably be required?
+* What architectural boundaries are likely to emerge?
+* What order currently appears most coherent?
+* What dependencies exist between major areas?
+* What milestones will indicate meaningful architectural progress?
+* What must be understood before later layers can be introduced?
+
+The roadmap may include milestones such as:
+
+```text
+Milestone — One useful mathematical behavior understood and verified
+
+Milestone — One understandable browser scene can represent current state
+
+Milestone — Python output can be interpreted correctly by the browser
+
+Milestone — One short journey is observable from start to arrival
+
+Milestone — The player can control the first soundscape
+
+Milestone — A journey can be saved and resumed reliably
+
+Milestone — The first playable experience feels calm and coherent
+```
+
+These are examples only.
+
+Milestones must emerge from the actual project.
+
+Do not mechanically reproduce these milestones or treat their presentation order as mandatory.
+
+A thin playable experience can provide evidence before every architectural layer exists. Each milestone still consists of separately understood conceptual units.
+
+---
+
+# 3. The Plan Is a Hypothesis, Not a Contract
+
+The fundamental planning principle is:
+
+> **The plan is a hypothesis, not a contract. Implemented code is evidence; unimplemented plan items are assumptions.**
+
+The roadmap describes the best current understanding of how the software may evolve.
+
+It MUST remain revisable.
+
+Future items may be:
+
+* reordered;
+* divided;
+* combined;
+* renamed;
+* replaced;
+* postponed;
+* made more abstract;
+* made more concrete;
+* removed entirely.
+
+A roadmap item that has not yet been implemented has no architectural authority merely because it appears in the plan.
+
+New evidence from implementation may invalidate old assumptions.
+
+That is expected.
+
+---
+
+# 4. Planning Detail Must Decrease With Distance
+
+The closer an item is to implementation, the more concrete the plan may be.
+
+The farther an item is from implementation, the more abstract it should remain.
+
+For example, early in a project it may be reasonable to plan:
+
+```text
+Later we will need to preserve a journey across browser sessions.
+```
+
+It may NOT yet be reasonable to assume:
+
+```text
+JourneyRepository
+SQLJourneyRepository
+JourneyMapper
+JourneyDTO
+JourneyTable
+JourneyRepositoryFactory
+```
+
+unless current evidence already justifies those concepts.
+
+The agent may foresee a **need** without prematurely deciding its exact implementation.
+
+This protects the roadmap from becoming speculative architecture.
+
+---
+
+# 5. The Roadmap Must Have Milestones
+
+The roadmap should identify meaningful milestones.
+
+A milestone represents a coherent level of understanding or capability.
+
+Examples:
+
+* the core domain is sufficiently modeled for the current requirements;
+* the first complete use case exists;
+* persistence can support the current application behavior;
+* the first interface can execute a use case;
+* an end-to-end path works;
+* external infrastructure is integrated safely.
+
+Milestones are NOT fixed architectural ceremonies.
+
+For example:
+
+> "Domain layer complete"
+
+must never mean:
+
+> "Every domain concept the final application will ever need has been implemented."
+
+It means something closer to:
+
+> "The currently known domain requirements necessary to move forward are sufficiently represented."
+
+A milestone may later be reopened if new requirements reveal missing concepts.
+
+---
+
+# 6. Reaching a Milestone Requires Reassessment
+
+When a milestone is reached, the agent SHOULD reassess the roadmap before proceeding.
+
+The reassessment should ask:
+
+* What did we learn?
+* Which assumptions were confirmed?
+* Which assumptions were wrong?
+* Which planned items are no longer necessary?
+* Which new pressures appeared?
+* Does the next milestone still make sense?
+* Should any future items be reordered?
+* Did we introduce anything that now looks unnecessary?
+
+The agent MUST NOT automatically execute changes discovered during this review.
+
+The review may change the roadmap.
+
+Actual code changes still follow the normal proposal and permission cycle.
+
+---
+
+# 7. Previously Created Things May Become Unnecessary
+
+Implemented code is not sacred.
+
+A conceptual unit may have been reasonable when introduced and later become unnecessary.
+
+Examples:
+
+* an abstraction gained only one trivial implementation;
+* a helper no longer removes meaningful duplication;
+* a DTO became redundant;
+* a wrapper provides no useful semantic boundary;
+* an interface was introduced based on an assumption that did not survive;
+* a layer boundary proved artificial;
+* a method became obsolete after the domain evolved.
+
+When this happens, the agent should explicitly surface the issue.
+
+Do not preserve unnecessary code merely because:
+
+* it was previously discussed;
+* it was previously tested;
+* it was previously documented;
+* it already has a commit;
+* removing it feels like reversing progress.
+
+Learning that an abstraction was unnecessary is architectural progress.
+
+Deletion is a valid conceptual unit.
+
+---
+
+# 8. Deletion Follows the Same Atomic Process
+
+Removing something is also one conceptual unit.
+
+The agent must first propose the removal.
+
+The proposal should explain:
+
+* why the thing originally existed;
+* what evidence now suggests it is unnecessary;
+* what responsibility, if any, will replace it;
+* what would happen if it remained;
+* what architectural simplification results from removing it.
+
+Only after explicit permission should the deletion occur.
+
+Tests and documentation affected by the deletion must NOT automatically be removed in the same implementation step unless they are inseparable from the same conceptual change.
+
+Prefer separate understandable units when possible.
+
+---
+
+# 9. Roadmap and Implementation Are Different Layers of Thought
+
+The process contains three distinct levels:
+
+```text
+ROADMAP
+    ↓
+CURRENT PROPOSAL
+    ↓
+CURRENT IMPLEMENTATION
+```
+
+## Roadmap
+
+Answers:
+
+> Where do we currently believe the project is going?
+
+It may contain many future items and milestones.
+
+## Current Proposal
+
+Answers:
+
+> Given everything we know now, what is the single best next conceptual unit?
+
+There must be only one current proposal.
+
+## Current Implementation
+
+Answers:
+
+> What exactly has the user authorized us to change now?
+
+There must be only one implementation unit.
+
+Never confuse these levels.
+
+---
+
+# 10. One Thing at a Time
+
+Every implementation step MUST introduce, modify, or remove exactly **one conceptual unit**.
+
+Examples of one conceptual unit:
+
+* one entity;
+* one value object;
+* one class;
+* one method;
+* one function;
+* one use case;
+* one protocol;
+* one interface;
+* one repository abstraction;
+* one repository implementation;
+* one DTO;
+* one Pydantic model;
+* one SQLModel model;
+* one FastAPI route, when an API exists;
+* one mathematical function;
+* one numerical integration step;
+* one TypeScript component;
+* one rendering transformation;
+* one audio behavior;
+* one astronomical data adapter;
+* one save-format migration;
+* one dependency provider;
+* one mapper;
+* one exception;
+* one fixture;
+* one factory;
+* one fake;
+* one stub;
+* one mock;
+* one helper;
+* one migration;
+* one configuration concern;
+* one test;
+* one integration test;
+* one live test;
+* one documentation change;
+* one dependency addition;
+* one refactoring step;
+* one deletion.
+
+A small file is NOT necessarily one thing.
+
+A small feature is NOT necessarily one thing.
+
+A complete cockpit, audio system, orbital simulator, or save system is NOT one thing.
+
+A logically related group of objects is NOT one thing.
+
+A change being easy to implement does NOT make it one thing.
+
+If a requirement appears to need:
+
+* one entity;
+* one repository;
+* one use case;
+* one fixture;
+* and three tests;
+
+then those are at least **seven separate development steps**.
+
+They MUST NOT be implemented together.
+
+## Explicit User-Authorized Grouping
+
+The one-unit rule is the default development rhythm, not a restriction on the
+user's control of the learning process. The user MAY explicitly request that a
+small, named set of conceptual units be implemented together when they state
+that they can understand and review the combined change.
+
+When the user gives that authorization, the agent MUST respect it and MAY
+implement the named units in the same step. The authorization applies only to
+the exact units identified by the user and MUST NOT be expanded to inferred
+supporting work, unrelated cleanup, tests, documentation, or additional
+abstractions.
+
+For the purposes of the current proposal, implementation scope, and mandatory
+stop, the explicitly authorized group is treated as the current unit of work.
+The agent must still explain the boundaries of the group, verify the result,
+report the changes clearly, and stop after completing it.
+
+Without explicit user authorization to group named units, the one-unit rule
+continues to apply.
+
+---
+
+# 11. Proposal and Implementation Are Separate Steps
+
+Every conceptual unit has at least two distinct phases:
+
+1. **proposal**
+2. **implementation**
+
+These phases MUST NOT happen automatically in the same step.
+
+When the user asks something equivalent to:
+
+> "What should we build next?"
+
+the agent MUST only propose the next conceptual unit.
+
+The proposal should explain:
+
+* what the unit is;
+* what responsibility it has;
+* why it is needed now;
+* what concrete problem it solves;
+* where it belongs architecturally;
+* how it will probably interact with what already exists;
+* why this particular shape is being proposed;
+* what realistic alternatives exist;
+* why those alternatives are not preferable at this moment;
+* how this unit relates to the current roadmap or milestone.
+
+The agent MUST NOT modify the repository during the proposal phase.
+
+The user may then:
+
+* ask questions;
+* challenge the design;
+* request examples;
+* compare alternatives;
+* reject the proposal;
+* modify the proposal;
+* ask why Clean Architecture suggests this boundary;
+* ask why another approach is not being used.
+
+Only after the user explicitly requests implementation may the proposed unit be implemented.
+
+---
+
+# 12. Never Confuse Knowledge With Permission
+
+The agent will often know what logically comes next.
+
+That does NOT grant permission to build it.
+
+The fundamental rule is:
+
+> **Knowing the next step grants permission to propose it, not to implement it.**
+
+The roadmap may contain dozens of future ideas.
+
+None of them are implementation permission.
+
+Never silently continue because the next step appears obvious.
+
+Never implement supporting objects merely because the current object will eventually need them.
+
+Never scaffold future steps.
+
+---
+
+# 13. Mandatory Stop After Every Unit
+
+After implementing one conceptual unit, STOP.
+
+Do not:
+
+* implement the next unit;
+* scaffold the next unit;
+* create supporting abstractions;
+* add the next test;
+* update unrelated documentation;
+* perform opportunistic cleanup;
+* prepare future files.
+
+The user must have the opportunity to:
+
+1. inspect the change;
+2. read the code;
+3. understand it;
+4. ask questions;
+5. challenge the design;
+6. inspect verification results;
+7. commit it;
+8. push it if desired.
+
+Only after the user returns and asks for the next step should another unit be proposed.
+
+---
+
+# 14. Expected Interaction Cycle
+
+The normal interaction should look like this:
+
+```text
+ROADMAP EXISTS
+      ↓
+USER ASKS WHAT COMES NEXT
+      ↓
+AGENT REASSESSES CURRENT ROADMAP
+      ↓
+AGENT PROPOSES ONE UNIT
+      ↓
+AGENT EXPLAINS THE REASONING
+      ↓
+USER DISCUSSES / QUESTIONS / APPROVES
+      ↓
+USER EXPLICITLY ASKS FOR IMPLEMENTATION
+      ↓
+AGENT IMPLEMENTS ONLY THAT UNIT
+      ↓
+AGENT VERIFIES ONLY WHAT IS NECESSARY
+      ↓
+AGENT EXPLAINS WHAT CHANGED
+      ↓
+STOP
+      ↓
+USER REVIEWS
+      ↓
+USER COMMITS / PUSHES
+      ↓
+USER ASKS WHAT COMES NEXT
+      ↓
+ROADMAP IS REASSESSED
+```
+
+The user controls advancement through this cycle.
+
+---
+
+# 15. Teaching Is Part of the Work
+
+Explanation is not optional commentary around implementation.
+
+It is part of the implementation process.
+
+Before implementing a conceptual unit, explain the following.
+
+## What it is
+
+Explain what kind of thing is being proposed.
+
+For example:
+
+* entity;
+* value object;
+* service;
+* function;
+* use case;
+* adapter;
+* fixture;
+* test.
+
+## Why it exists
+
+Explain the concrete pressure inside the current software that makes it useful **now**.
+
+Never justify something merely with:
+
+> "Clean Architecture says so."
+
+The reasoning must connect the architectural concept to the actual software.
+
+## Why it belongs here
+
+Explain why the responsibility belongs in its proposed:
+
+* layer;
+* module;
+* package;
+* object;
+* boundary.
+
+## Why it has this shape
+
+When relevant, explain decisions such as:
+
+* class versus function;
+* function versus method;
+* immutable versus mutable;
+* dataclass versus Pydantic;
+* Pydantic versus plain Python;
+* protocol versus ABC;
+* composition versus inheritance;
+* constructor injection versus parameter injection;
+* synchronous versus asynchronous;
+* domain object versus persistence model;
+* DTO versus entity;
+* exception versus return value;
+* Python calculation versus browser evaluation;
+* analytical formula versus numerical approximation;
+* simulation coordinates versus display coordinates;
+* model state versus presentation state;
+* local save versus server persistence.
+
+## What alternatives exist
+
+Always identify at least one realistic alternative when there is a meaningful design choice.
+
+## Why the alternative is not being chosen
+
+Explain the tradeoff.
+
+Do not pretend the chosen architecture is the only correct architecture.
+
+The goal is to understand architectural reasoning, not memorize rituals.
+
+---
+
+# 16. Architecture Must Emerge From Pressure
+
+Do not create abstractions because they are commonly found in Clean Architecture projects.
+
+Forbidden reasoning includes:
+
+> "We will probably need this later."
+
+> "Every Clean Architecture project has one."
+
+> "Let's prepare for future expansion."
+
+> "It will make the next implementation easier."
+
+> "Let's scaffold all the layers first."
+
+An abstraction should appear when the current software creates pressure for it.
+
+For example:
+
+Do not create a repository abstraction before something genuinely requires persistence to be abstracted.
+
+Do not create a mapper before two representations genuinely require translation.
+
+Do not create a DTO before a boundary makes another representation useful.
+
+Do not create a shared helper before meaningful duplication or responsibility exists.
+
+Do not create a fixture before a test needs reusable setup.
+
+Do not introduce dependency injection machinery before there is actually a dependency worth injecting.
+
+The architecture MUST grow from concrete problems.
+
+---
+
+# 17. Planning Ahead Is Not Premature Architecture
+
+Thinking about a future architectural need is allowed and required.
+
+Implementing a speculative architectural solution is not.
+
+This distinction is essential.
+
+Valid roadmap reasoning:
+
+> "The application will eventually need persistence."
+
+Invalid implementation reasoning:
+
+> "Therefore we should create three repository abstractions now."
+
+Valid roadmap reasoning:
+
+> "The browser will need access to the simulation outputs."
+
+Invalid implementation reasoning:
+
+> "Let's create a FastAPI service, WebSocket channel, and worker queue in advance."
+
+The roadmap may predict pressure.
+
+The codebase must wait for evidence.
+
+---
+
+# 18. Clean Architecture Principles
+
+The project MUST follow Clean Architecture principles.
+
+The exact directory structure is secondary.
+
+The dependency direction is primary.
+
+Conceptually, dependencies should point:
+
+```text
+OUTSIDE → INSIDE
+```
+
+The inner game rules and mathematical behavior must not depend on infrastructure or presentation details.
+
+These principles apply to Python and TypeScript alike. They do not require identical folder trees or one class per calculation. A small, pure function may be the most appropriate implementation.
+
+Typical conceptual layers may include:
+
+```text
+domain
+application
+infrastructure
+interfaces
+```
+
+These directories MUST NOT be created preemptively merely because this document names them.
+
+They should appear only when the software needs them.
+
+---
+
+# 19. Domain and Mathematical Model
+
+The domain contains game concepts, rules, and mathematical behavior that make sense independently of how they are displayed, stored, or delivered.
+
+Possible concepts include a distance, a destination, a journey, an arrival condition, or a model of motion. These are examples, not a list of classes to create.
+
+Domain code should normally avoid dependencies on:
+
+* FastAPI, SQLModel, SQLAlchemy, and Alembic;
+* HTTP clients and external catalog APIs;
+* databases, filesystem details, and browser storage;
+* DOM objects, UI frameworks, and rendering engines;
+* Web Audio nodes and audio playback state;
+* global clocks and uncontrolled random generators.
+
+Prefer plain Python or plain TypeScript when they adequately express the concept. A mathematical function does not need an entity, service, interface, and factory around it.
+
+Scientific libraries may be legitimate dependencies of numerical code when their capability is needed. Explain that choice instead of wrapping every numerical operation merely to imitate framework independence.
+
+Pydantic or a browser validation library belongs where its actual validation responsibility is useful; neither should automatically define the domain.
+
+## Mathematical understanding is part of the unit
+
+Before implementing a mathematical behavior, explain:
+
+* the question it answers;
+* the meaning and units of inputs and outputs;
+* the equation or algorithm and the assumptions behind it;
+* a small example the user can follow;
+* the valid input range and relevant edge cases;
+* the expected approximation error, when applicable;
+* one meaningful way to verify the result.
+
+Do not hide an unexplained formula inside a helper or delegate understanding to a scientific library.
+
+## Units, coordinates, and numerical precision
+
+* Make physical units explicit in names, types, or the boundary contract.
+* Define coordinate origins, axes, reference frames, and epochs when they matter.
+* Choose consistent internal units for each calculation; convert explicitly at boundaries.
+* Distinguish physical distance from a rendered distance or camera scale.
+* Choose numerical tolerances from the model and its intended use, not merely until a test passes.
+* Account for large astronomical magnitudes when choosing how to represent local positions.
+* Explain whether an algorithm is analytical, sampled, interpolated, or numerically integrated.
+
+Do not create a universal units framework, arbitrary-precision subsystem, or full gravitational simulator before the current behavior needs it.
+
+## Scientific claims and fictional travel
+
+Separate:
+
+1. observed or catalogued astronomical data;
+2. calculated values and their assumptions;
+3. display transformations;
+4. deliberate game rules or fictional travel mechanics.
+
+Real destinations and distances do not automatically imply physically realistic travel.
+
+Time acceleration, simplified orbits, altered display sizes, and fictional propulsion should be described honestly when they affect what the player sees or learns.
+
+Do not introduce relativistic mechanics, an n-body solver, or exhaustive ephemerides merely because the game takes place in space.
+
+---
+
+# 20. Application Layer and Journey State
+
+The application layer coordinates application-specific workflows using domain behavior.
+
+Possible examples include starting a journey, requesting a calculation, saving progress, resuming a journey, or recognizing an arrival. Introduce each only when required.
+
+Application code should depend inward toward domain concepts and reach technical systems through justified boundaries. Do not add a port for every function automatically.
+
+## Python and browser responsibilities
+
+For every cross-language behavior, explain:
+
+* which side owns the calculation or rule;
+* what data crosses the boundary;
+* how units, timestamps, coordinates, and model versions are represented;
+* what the browser evaluates locally;
+* what happens if the service or data source is unavailable.
+
+Python may prepare data or calculate a trajectory on demand. TypeScript may evaluate or interpolate an already-defined trajectory for display.
+
+Do not independently reinvent the same scientific model in both languages without a concrete need and a consistency strategy. If both sides evaluate a shared formula, make the contract and a meaningful reference example explicit.
+
+A language boundary does not require a network boundary. Select a file, build-time export, HTTP interface, or other integration when actual requirements justify it.
+
+## Simulation time is explicit
+
+Distinguish:
+
+* real elapsed time;
+* simulated time;
+* animation frame timing;
+* audio playback timing, when relevant.
+
+A rendered frame must not be the unit of journey progress. A journey must not become faster because the display renders more frames.
+
+Pass time into the relevant behavior or use a justified clock boundary. Make random seeds explicit when stochastic behavior must be reproducible.
+
+When background or offline progress is introduced, define what should happen after tab suspension, reload, a long absence, or a changed system clock. Do not assume a background callback continues running regularly.
+
+Reconstruct progress from a defined saved state and elapsed-time policy where the model permits it. Do not default to a permanently running simulation process per player.
+
+If the model cannot be resumed through a simple calculation, explain the numerical and performance tradeoffs before selecting a strategy.
+
+## Saved progress
+
+Save the smallest state necessary to recover understood behavior. Do not serialize an entire scene graph or audio graph merely because those objects already exist.
+
+When an existing save format changes, explain compatibility, defaults, and any migration required. Never silently discard working player progress.
+
+Local persistence, accounts, cloud synchronization, anti-cheat, and monetized entitlements are separate concerns. One does not automatically justify the others.
+
+---
+
+# 21. Infrastructure Layer
+
+Infrastructure contains technical implementations such as:
+
+* astronomical catalog clients and data importers;
+* file loading and export;
+* browser storage adapters;
+* database sessions and repository implementations when needed;
+* HTTP clients or servers;
+* audio loading, decoding, and playback adapters;
+* optional workers and third-party integrations.
+
+Infrastructure may depend on inner layers. Inner rules must not require a browser, a database, or a remote catalog merely to be evaluated.
+
+## Astronomical data
+
+When integrating a real dataset, record the source and relevant version or retrieval date. Preserve the units, reference frame, epoch, and uncertainty information needed to interpret the fields actually used.
+
+Explain the distinction between measured, estimated, missing, and derived values. Do not silently substitute fabricated data for unavailable astronomical measurements.
+
+A small, clearly labelled sample can support early development. Do not import an entire catalog or introduce a pipeline before a current use case needs it.
+
+## Music, sound effects, and other assets
+
+Audio quality is part of the game. Code correctness alone cannot establish that a loop is pleasant to hear for a long session.
+
+When an asset is introduced:
+
+* identify its source, creator when known, and whether it is original, commissioned, licensed, or generated;
+* verify the permissions needed for the intended game use and public distribution;
+* record required attribution and relevant usage restrictions;
+* keep purchase evidence and credentials out of the public repository;
+* do not assume a subscription or a download authorizes redistribution of the raw file.
+
+Code licensing and asset permissions must be considered separately. Do not add or change either policy without the user's instruction.
+
+Use redistributable development assets or documented placeholders when production assets cannot be committed publicly. Keep the authorized development path usable and document any missing optional asset honestly.
+
+For a procedural sound, explain the signal ingredients, their parameters, and how to avoid abrupt transitions or clipping. For a recorded or generated sound, explain the editing and playback decisions that matter to the current behavior.
+
+Do not claim to have listened to a track or validated a sound when only file metadata or code has been inspected.
+
+---
+
+# 22. Interface and Presentation Layer
+
+Interfaces expose the application through browser controls, rendering, audio presentation, and an API or CLI when one is actually needed.
+
+Keep framework-specific concerns near these outer boundaries.
+
+A UI component should not own astronomical calculations simply because it displays their results. A shader should not become the authoritative definition of journey progress. An audio callback should not decide whether a destination has been reached.
+
+## A calm and usable experience
+
+When introducing relevant presentation behavior:
+
+* make music, ambience, and sound effects controllable;
+* make starting audio an explicit player action and handle playback failures;
+* use comfortable volume and transitions instead of surprise bursts;
+* provide visible equivalents for meaningful audio-only information;
+* support keyboard interaction and visible focus for controls;
+* consider reduced motion and readable contrast;
+* keep necessary travel status understandable without requiring continuous attention.
+
+These are design criteria for the corresponding unit, not permission to build an entire settings panel or accessibility framework in advance.
+
+## Rendering and performance
+
+Explain each transformation from physical coordinates to display coordinates. Visual compression, exaggerated body sizes, and camera-relative positions must remain presentation decisions rather than silently changing scientific data.
+
+Separate the frequency of scientific calculation from rendering frequency when appropriate. Avoid blocking interaction with unnecessary heavy calculations.
+
+When performance pressure appears, measure the relevant work and propose one improvement. Do not introduce workers, object pools, complex caching, or an entity-component-system architecture by default.
+
+For a visual or audio change, report what was inspected or heard and what remains unverified. A successful build is not evidence that the cockpit looks good or sounds comfortable.
+
+---
+
+# 23. Preferred Technology Direction
+
+These preferences guide choices when a need appears. They do not authorize installing a full stack or creating both applications in the first step.
+
+## Python
+
+Use Python for the scientific and simulation responsibilities described above. Select a supported version compatible with the dependencies actually chosen; do not assume a version from another repository.
+
+Use Poetry for Python dependency management, virtual environments, package metadata, scripts, and dependency groups.
+
+Do not introduce `requirements.txt` as the primary dependency mechanism unless an actual integration requires it.
+
+Prefer:
+
+* Pytest for Python tests;
+* precise type annotations, compatible with strict Pylance-style analysis;
+* Pyright when repository-level CLI type checking is introduced;
+* Ruff for linting, formatting, and import organization.
+
+Pylance is editor tooling; do not install it as a Python runtime dependency.
+
+Avoid unnecessary `Any` and unexplained type-checking suppressions.
+
+NumPy, SciPy, Astropy, or another scientific package may be considered when a concrete mathematical or data-processing need warrants it. Their names here do not constitute a dependency list.
+
+## Browser code
+
+Use TypeScript with strict checking for browser application code. Keep mathematical and state transformations independent of a UI or rendering framework when practical.
+
+Avoid using `any`, unsafe assertions, or compiler suppressions to hide an unexplained boundary. Validate external data where it enters the application when that data needs validation.
+
+Choose the browser package manager, bundler, test runner, formatter, and rendering approach as explicit setup decisions. Once selected, use the repository's existing tools and lockfile consistently.
+
+Do not select a full UI framework or 3D engine merely because the game needs a cockpit. The actual scene, interaction, and rendering requirements should justify that choice.
+
+Do not add parallel formatters, overlapping test runners, or multiple JavaScript lockfiles without a concrete reason.
+
+## Optional HTTP boundary
+
+Prefer FastAPI if a Python HTTP service becomes necessary.
+
+Pydantic and Pydantic Settings are preferred candidates for boundary validation and service configuration when useful. They are not requirements for a pure mathematical module.
+
+Do not create an API merely to justify the Python–TypeScript split.
+
+## Persistence
+
+Browser persistence may be sufficient for an early local journey. Select its actual mechanism when the save requirement is understood.
+
+If relational server persistence becomes necessary, prefer SQLModel and use Alembic for schema migrations.
+
+Do not create accounts, a backend database, or synchronization just because the game will be accessible worldwide.
+
+## Verification levels
+
+Introduce meaningful verification where the current behavior warrants it:
+
+* pure mathematical and game-rule tests;
+* numerical reference or invariant checks;
+* Python–TypeScript contract checks;
+* component integration tests;
+* save-and-resume tests;
+* browser interaction tests;
+* optional API, database, or live tests;
+* targeted visual and listening checks.
+
+This list is not a suite-generation checklist. Every new test follows the one-unit rule.
+
+## Pre-commit
+
+Use pre-commit incrementally for applicable quality checks.
+
+Explain each hook, what files it checks, and what it costs. Browser checks should use the browser tools already selected rather than duplicating their configuration.
+
+Keep slow browser checks, remote services, and full asset processing out of fast local hooks unless a specific, understood requirement justifies them.
+
+---
+
+# 24. Dependencies Are Conceptual Units
+
+Dependencies must not appear silently.
+
+Adding a dependency is itself a meaningful development decision.
+
+Before introducing a dependency, explain:
+
+* what current requirement needs it;
+* what capability it provides;
+* why the standard library is insufficient when applicable;
+* why this library is preferable to relevant alternatives;
+* what layer will depend on it;
+* its effect on reproducibility, distribution, and browser download size when relevant.
+
+Do not add dependencies merely because they are expected to become useful later.
+
+The preferred stack defines which technology should usually be chosen **when the need appears**.
+
+It does not authorize premature installation or premature use.
+
+---
+
+# 25. Code → Test → Documentation
+
+The preferred local development cadence is:
+
+```text
+CODE
+  ↓
+TEST
+  ↓
+DOCUMENT
+```
+
+This is not strict TDD.
+
+The purpose of this order is pedagogical.
+
+First, the user understands the concrete software concept.
+
+Then a test formalizes one understood behavior.
+
+Then documentation records the knowledge that has already been acquired.
+
+Example:
+
+```text
+Create class
+↓
+Review
+↓
+Commit
+
+Create one meaningful test
+↓
+Review
+↓
+Commit
+
+Document the class as it currently exists
+↓
+Review
+↓
+Commit
+
+Implement first method
+↓
+Review
+↓
+Commit
+
+Create first test for that method
+↓
+Review
+↓
+Commit
+
+Update documentation for that method
+↓
+Review
+↓
+Commit
+```
+
+Then continue incrementally.
+
+Do not manufacture a meaningless test simply to preserve this sequence.
+
+If the current conceptual unit has no useful observable behavior to test yet, explain that clearly.
+
+---
+
+# 26. One Test at a Time
+
+Every test is a conceptual unit.
+
+Create exactly **one test at a time**.
+
+Do not implement an entire test class or test suite in a single step.
+
+If one method deserves five tests, those are five separate development steps.
+
+For each proposed test, explain:
+
+* what behavior it proves;
+* why that behavior matters;
+* why it is useful now;
+* why this is the appropriate test level;
+* what failure would mean;
+* what other possible tests are deliberately not being created yet.
+
+For numerical behavior, choose a meaningful reference value, property, or invariant. State the tolerance and its reason. A test that merely repeats the implementation formula does not provide independent evidence.
+
+A Python–TypeScript contract test should verify the relevant meaning of the exchanged data, including units or time semantics, rather than only checking that JSON can be parsed.
+
+After implementing one test:
+
+1. run the relevant verification;
+2. report the result;
+3. stop.
+
+---
+
+# 27. Tests Follow Knowledge, Not Templates
+
+Do not mechanically generate tests because a checklist says every object needs:
+
+* construction tests;
+* equality tests;
+* serialization tests;
+* validation tests;
+* edge-case tests;
+* boundary tests.
+
+A test should appear because one specific behavior is understood and worth protecting.
+
+Each new behavior creates an opportunity to discuss what the most meaningful next test should be.
+
+---
+
+# 28. Integration Tests Should Appear Early
+
+Do not postpone integration until the end of the project.
+
+As soon as two already-understood components can interact meaningfully, consider whether their interaction deserves a test.
+
+For example:
+
+```text
+Component A understood
++
+Component B understood
+=
+possible integration-test pressure
+```
+
+The agent should point this out when proposing the next unit.
+
+However, an integration test remains **one conceptual unit**.
+
+Do not create multiple integration scenarios at once.
+
+---
+
+# 29. Live Tests Should Appear When Possible
+
+When the already-understood software is capable of exercising real infrastructure safely, consider introducing a live test.
+
+Examples may include interaction with:
+
+* a browser executing the current journey flow;
+* an actual HTTP server, when present;
+* an astronomical catalog API;
+* a real filesystem or browser storage mechanism;
+* a database or deployed service, when the project has one.
+
+Live tests MUST:
+
+* be clearly identifiable;
+* have explicit prerequisites;
+* document required environment variables;
+* avoid accidental execution when inappropriate;
+* avoid destructive behavior unless the environment is explicitly disposable;
+* fail or skip clearly when infrastructure is unavailable.
+
+Keep ordinary tests reproducible without live network access or paid services. Use a small, understood data sample when appropriate; a new reusable fixture is still its own unit.
+
+Browser checks must not erase the user's real save or modify a production account.
+
+Each live test is one conceptual unit.
+
+Do not create an entire live-test suite at once.
+
+---
+
+# 30. Fixtures Are First-Class Units
+
+A fixture is not invisible test plumbing.
+
+Each fixture is its own conceptual unit.
+
+Never silently introduce fixtures while implementing a test.
+
+When repeated setup creates pressure for a fixture, propose the fixture separately.
+
+Explain:
+
+* why the fixture has become useful;
+* what setup it represents;
+* why a fixture is better than local setup now;
+* what scope it should have;
+* why that scope is appropriate.
+
+Then implement only that fixture.
+
+The same principle applies to:
+
+* factories;
+* builders;
+* fakes;
+* mocks;
+* stubs;
+* test helpers;
+* generators.
+
+---
+
+# 31. Helpers Are First-Class Units
+
+Never silently extract or introduce helper functions as incidental work.
+
+If implementation reveals that a helper would improve the design, that helper becomes a candidate for the next conceptual unit.
+
+Explain:
+
+* what duplication or responsibility motivates it;
+* why extraction is useful now;
+* why this boundary was chosen;
+* why keeping the logic inline is no longer preferable.
+
+Then implement only the helper.
+
+---
+
+# 32. Documentation Is a Conceptual Unit
+
+Documentation follows exactly the same atomic rules as production code and tests.
+
+A documentation change is one conceptual unit.
+
+Documentation MUST describe only what currently:
+
+* exists;
+* has been discussed;
+* has been understood;
+* has been implemented;
+* has been verified when verification is relevant.
+
+Documentation of implemented behavior is **retrospective**, not speculative.
+
+Roadmaps, product vision, and this AGENTS.md may describe intentions and policies when clearly labelled as such. They must not present planned capabilities as completed software.
+
+In documentation of completed behavior, never present the following as already implemented:
+
+* planned methods;
+* planned classes;
+* future responsibilities;
+* future layers;
+* speculative abstractions;
+* features not yet implemented;
+* architecture that has not emerged yet.
+
+The roadmap is the proper place for future intent.
+
+Documentation describes reality.
+
+---
+
+# 33. Documentation Must Grow With Understanding
+
+Documentation should begin very small.
+
+If a class has only just been created, its documentation may contain only:
+
+* its name;
+* its type or architectural role;
+* its current responsibility;
+* the problem it currently solves.
+
+Four or five lines may be completely sufficient.
+
+Example:
+
+```text
+TravelDuration
+--------------
+
+A domain value object representing a travel duration in seconds.
+
+It rejects negative durations and keeps the unit explicit when the
+application passes a duration to other behavior.
+```
+
+This example applies only after the described validation actually exists. It does not require introducing a value object before a primitive or function becomes insufficient.
+
+If the class later gains a method, documentation can be updated later with only the newly understood information.
+
+Do not rewrite the whole document unnecessarily.
+
+Documentation should mirror the actual history of understanding.
+
+---
+
+# 34. Documentation Should Usually Be Local to the Concept
+
+Prefer documentation organization that allows concepts to grow independently.
+
+If one entity has been understood, document that entity.
+
+Do not use the creation of one concept as an excuse to document the whole architecture.
+
+Forbidden example:
+
+```text
+docs/domain.md
+
+# TravelDuration
+# Destination
+# Journey
+# Arrival
+# Trajectory
+```
+
+when only `TravelDuration` currently exists.
+
+A concept should not appear in descriptive documentation before it exists in the software and has been understood.
+
+Future concepts belong in the roadmap, not in completed-concept documentation.
+
+---
+
+# 35. Documentation Is Also Reviewed
+
+Documentation is not generated and forgotten.
+
+After a documentation unit is implemented:
+
+STOP.
+
+The user should be able to:
+
+* read it;
+* check whether it matches their understanding;
+* ask questions;
+* improve wording;
+* challenge architectural terminology;
+* commit it independently.
+
+This is part of the learning process.
+
+---
+
+# 36. Refactoring Must Be Atomic
+
+Refactoring follows the same one-unit rule.
+
+Never perform a large architectural refactor in one pass.
+
+Forbidden examples include:
+
+* moving many modules simultaneously;
+* renaming a whole subsystem;
+* introducing several architectural layers at once;
+* migrating hundreds of lines to a new pattern;
+* replacing an existing architecture wholesale.
+
+Instead, find the smallest coherent refactoring step.
+
+Examples:
+
+* move one class;
+* rename one abstraction;
+* extract one function;
+* introduce one protocol;
+* redirect one dependency;
+* remove one obsolete helper.
+
+After each refactoring step:
+
+1. verify the relevant behavior;
+2. explain what architectural property improved;
+3. explain what remains imperfect;
+4. stop.
+
+Temporary asymmetry is acceptable.
+
+Temporary duplication may be acceptable.
+
+An intermediate architecture may look imperfect.
+
+Understanding the transformation is more important than instantly reaching the final ideal state.
+
+---
+
+# 37. Architectural Reviews Are Explicit Events
+
+At meaningful points, especially around milestones, perform an architectural review.
+
+A review is primarily an analysis activity.
+
+Its purpose is to inspect the architecture that actually emerged.
+
+Possible questions include:
+
+* Are responsibilities located where we expected?
+* Did any abstraction appear too early?
+* Is any abstraction no longer useful?
+* Are framework concerns leaking inward?
+* Is duplication creating pressure for a new abstraction?
+* Are there boundaries in the roadmap that no longer make sense?
+* Have actual requirements contradicted our original plan?
+* Is the next planned milestone still the right one?
+
+The output of a review may include proposals.
+
+It MUST NOT silently trigger implementation.
+
+---
+
+# 38. No Incidental Changes
+
+When implementing one conceptual unit, do NOT:
+
+* clean unrelated code;
+* modernize unrelated syntax;
+* rename unrelated symbols;
+* reorder unrelated modules;
+* reformat unrelated files;
+* repair unrelated tests;
+* add unrelated typing;
+* reorganize the repository;
+* introduce unrelated abstractions.
+
+If another problem is discovered, mention it separately.
+
+Do not fix it unless it becomes the explicitly selected conceptual unit.
+
+---
+
+# 39. Small Diffs Are a Design Constraint
+
+Small diffs are desirable because they support comprehension.
+
+A normal development step should be understandable without inspecting hundreds of changed lines.
+
+If the proposed implementation creates a large diff, reconsider whether it can be decomposed.
+
+A conceptual unit may legitimately touch multiple files when the unit itself requires it.
+
+For example, renaming one already-existing concept may require updating several imports.
+
+That can still represent one conceptual change.
+
+But creating:
+
+* a model;
+* a repository;
+* a use case;
+* an endpoint;
+* fixtures;
+* and tests;
+
+is never one conceptual unit.
+
+---
+
+# 40. Project Initialization Must Also Be Incremental
+
+Do not scaffold the final Clean Architecture structure when starting a repository.
+
+Avoid creating something like:
+
+```text
+src/
+    domain/
+        entities/
+        value_objects/
+        services/
+        exceptions/
+    application/
+        use_cases/
+        ports/
+        dto/
+    infrastructure/
+        database/
+        repositories/
+        external/
+    interfaces/
+        api/
+        cli/
+
+tests/
+    unit/
+    integration/
+    live/
+```
+
+before these concepts actually exist.
+
+Create only what the currently understood software requires.
+
+Empty architectural directories are usually evidence of premature architecture.
+
+The roadmap may foresee these architectural areas without creating them.
+
+---
+
+# 41. Frameworks Must Not Define the Domain
+
+FastAPI, SQLModel, Pydantic, Alembic, UI frameworks, rendering engines, and audio APIs exist to support the software.
+
+They do not define its game rules or mathematical model.
+
+Never choose a domain design merely because a framework makes one representation convenient.
+
+Always ask:
+
+> "If this framework disappeared tomorrow, would this game or mathematical concept still exist?"
+
+If yes, strongly consider keeping that concept independent from the framework.
+
+---
+
+# 42. Domain, Transport, Persistence, and Rendering Models
+
+A scientific model, a saved journey, a transport payload, and a rendered scene may represent related information with different responsibilities.
+
+Do not automatically make a database record, API schema, browser storage object, or scene node the domain model.
+
+Avoid duplicating representations before their responsibilities differ. Introduce a translation when a real boundary requires it and explain exactly what changes.
+
+For example, a physical position and a camera-relative position may legitimately use different representations. The render representation must not silently overwrite the physical one.
+
+A framework-neutral data structure may cross an early boundary when its meaning is suitable on both sides. An ORM model or scene-engine object must not pull that framework into inner rules merely to save a mapping step.
+
+Before separating models, explain the pressure causing the separation. Before sharing a representation, explain why its responsibilities and dependencies remain appropriate.
+
+---
+
+# 43. Architectural Decisions Must Be Visible
+
+Never silently make important architectural choices.
+
+Explicitly surface decisions involving:
+
+* layer boundaries;
+* dependency direction;
+* object ownership;
+* validation responsibility;
+* persistence boundaries;
+* transaction boundaries;
+* mutability;
+* identity;
+* equality;
+* domain versus application responsibility;
+* application versus infrastructure responsibility;
+* DTO boundaries;
+* exception strategy;
+* dependency injection;
+* synchronization versus async;
+* serialization;
+* mocking;
+* fixture scope;
+* test level;
+* scientific approximation and numerical tolerance;
+* time acceleration and clock ownership;
+* physical coordinates versus display coordinates;
+* Python versus browser responsibility;
+* save compatibility;
+* audio state ownership;
+* asset provenance and distribution.
+
+These are precisely the decisions the user is trying to learn to recognize.
+
+---
+
+# 44. Prefer the Smallest Useful Verification
+
+After implementation, run the smallest verification that meaningfully validates the current change.
+
+Examples:
+
+```bash
+poetry run pytest tests/unit/test_travel_duration.py
+```
+
+or:
+
+```bash
+poetry run pytest tests/unit/test_travel_duration.py::test_rejects_negative_duration
+```
+
+or:
+
+```bash
+poetry run ruff check src/domain/travel_duration.py
+```
+
+These paths are examples only. Run commands against files and tools that actually exist in this repository.
+
+For browser changes, use the selected type checker, a targeted existing test, or a focused manual browser check as appropriate. For audio changes, distinguish automated signal checks from actual listening.
+
+Running an existing check is verification, not an additional implementation unit. Creating a new test, fixture, or tool configuration remains a separate unit unless explicitly grouped by the user.
+
+Do not run broad, expensive commands merely out of habit.
+
+Run broader checks when they are required to ensure the current unit did not violate established behavior.
+
+Verification itself does not grant permission to fix unrelated failures.
+
+---
+
+# 45. Pre-commit Evolves Incrementally
+
+Pre-commit is part of the standard project setup, but its configuration should also be understandable.
+
+Introduce checks deliberately.
+
+Possible responsibilities include:
+
+* Ruff lint;
+* Ruff format;
+* tests;
+* static analysis;
+* basic repository hygiene.
+
+Do not copy a huge pre-commit configuration without explaining its pieces.
+
+If introducing several independent hooks, treat them as separate conceptual units whenever understanding would benefit.
+
+---
+
+# 46. Commit Discipline
+
+Conceptual units should be small enough to map naturally to understandable commits.
+
+Prefer commits that answer one question.
+
+Examples:
+
+```text
+feat(domain): add TravelDuration value object
+```
+
+```text
+test(domain): reject negative travel duration
+```
+
+```text
+docs(domain): document TravelDuration value object
+```
+
+```text
+feat(simulation): calculate constant-speed travel duration
+```
+
+```text
+test(simulation): verify travel duration against a reference case
+```
+
+```text
+docs(simulation): explain constant-speed travel assumptions
+```
+
+```text
+test(integration): interpret Python trajectory data in the browser
+```
+
+The agent SHOULD suggest an appropriate commit message after completing a unit.
+
+The agent MUST NOT commit or push unless explicitly instructed to do so.
+
+If the user says they have committed and pushed, treat that as the checkpoint that closes the current conceptual unit.
+
+---
+
+# 47. Do Not Optimize for Commit Count
+
+Although small commits are preferred, the purpose is not to maximize the number of commits artificially.
+
+The purpose is to make every conceptual decision independently understandable and reversible.
+
+A commit represents a learning checkpoint.
+
+---
+
+# 48. The Agent Must Explain Why Not
+
+Architectural explanation must include both:
+
+> **Why are we doing this?**
+
+and, whenever there is a realistic alternative:
+
+> **Why are we not doing it another reasonable way?**
+
+For example:
+
+If proposing a value object, discuss why a primitive is insufficient.
+
+If proposing a plain Python class, discuss why Pydantic is unnecessary.
+
+If proposing Pydantic, discuss what it provides over a plain class.
+
+If proposing a Protocol, discuss why an ABC or concrete dependency is less appropriate.
+
+If proposing an integration test, explain why a unit test alone would not prove the desired interaction.
+
+If proposing a numerical solver, explain why an analytical approximation is insufficient for the current journey.
+
+If proposing a Python API, explain why prepared data or local browser evaluation cannot meet the current need.
+
+If proposing a 3D engine, explain what the current scene requires that a simpler rendering approach cannot reasonably provide.
+
+The objective is comparative architectural reasoning.
+
+---
+
+# 49. Do Not Hide Complexity Behind Generated Code
+
+Avoid producing large amounts of boilerplate merely because a framework or generator can create them.
+
+Code generation must not bypass understanding.
+
+If scaffolding tools are used, generated structures must still be introduced at a pace compatible with the one-conceptual-unit rule.
+
+The learning process is more important than avoiding a few minutes of manual work.
+
+---
+
+# 50. Do Not Implement the Final Architecture in Advance
+
+The agent SHOULD maintain a mental and explicit roadmap of the likely architectural direction.
+
+The agent MUST NOT construct that end state ahead of the user's understanding.
+
+It is acceptable for the repository to temporarily contain:
+
+* only one domain class;
+* only one test;
+* only one documentation file;
+* a partially formed layer;
+* temporary duplication;
+* an implementation that will later require refactoring;
+* an abstraction that may eventually be deleted.
+
+The repository should represent the current state of evidence and understanding.
+
+The roadmap represents current expectations about the future.
+
+These are not the same thing.
+
+---
+
+# 51. Example Development Sequence
+
+Suppose a class will eventually contain two methods.
+
+The roadmap may already know that those methods are likely.
+
+The implementation still proceeds like this:
+
+```text
+1. Propose the class
+2. Discuss the class
+3. Implement only the class
+4. Review
+5. Commit / push
+
+6. Reassess the roadmap
+
+7. Propose one test for the class
+8. Discuss the test
+9. Implement only that test
+10. Review
+11. Commit / push
+
+12. Reassess the roadmap
+
+13. Propose initial documentation
+14. Discuss what should currently be documented
+15. Create only that documentation
+16. Review
+17. Commit / push
+
+18. Reassess the roadmap
+
+19. Propose the first method
+20. Discuss its responsibility and alternatives
+21. Implement only the first method
+22. Review
+23. Commit / push
+
+24. Reassess the roadmap
+
+25. Propose one test for that method
+26. Discuss the test
+27. Implement only that test
+28. Review
+29. Commit / push
+
+30. Propose the documentation update
+31. Document only the newly understood behavior
+32. Review
+33. Commit / push
+```
+
+The second method may have been present in the roadmap since step 1.
+
+That does not matter.
+
+It is not implemented until its turn arrives and the user explicitly approves it.
+
+There is no requirement to minimize the number of steps.
+
+Slow progression is intentional.
+
+---
+
+# 52. Do Not Infer Permission From Broad Requests
+
+If the user says:
+
+> "Let's implement the orbital simulation."
+
+do not treat that direction as permission to implement the entire simulator in one pass.
+
+Use the roadmap to understand what scientific behavior is actually needed first.
+
+Then determine the smallest meaningful first concept and propose it.
+
+If the user says:
+
+> "Build the cockpit."
+
+do not build the entire cockpit, audio system, controls, and journey display together.
+
+Use the roadmap to orient the work.
+
+Then propose the smallest meaningful next concept.
+
+If the user says:
+
+> "Refactor this into Clean Architecture."
+
+do not perform the complete refactor.
+
+First create or reassess the architectural roadmap.
+
+Then identify and propose the smallest safe architectural movement.
+
+Broad feature requests define direction.
+
+By themselves, they do not override atomic development.
+
+If the user explicitly asks to implement the current named unit or a named group under Section 10, that instruction is authorization. Do not force an additional approval ceremony for an already-authorized unit.
+
+---
+
+# 53. Questions Are Part of Learning
+
+When the user asks questions about a proposal, answer those questions before implementation.
+
+Do not interpret discussion as approval.
+
+Examples:
+
+> "Why a class instead of a function?"
+
+is a request for reasoning, not implementation permission.
+
+> "Would a dataclass work?"
+
+is a request to compare designs, not permission to alter the repository.
+
+Implementation begins only after a clear implementation instruction.
+
+---
+
+# 54. Preserve Existing Working Behavior
+
+Incremental development should maintain previously understood behavior whenever possible.
+
+Before changing existing behavior, explain:
+
+* what behavior currently exists;
+* why it must change;
+* what test protects it;
+* whether the change represents a bug fix, requirement change, or design improvement.
+
+Never casually invalidate previous learning checkpoints.
+
+---
+
+# 55. The Repository Is a Learning History
+
+The Git history, tests, documentation, and architectural evolution should together reveal how the system emerged.
+
+A reader should be able to understand approximately:
+
+```text
+initial hypothesis
+↓
+concept introduced
+↓
+behavior verified
+↓
+knowledge documented
+↓
+new evidence discovered
+↓
+plan adjusted
+↓
+next behavior introduced
+↓
+interaction discovered
+↓
+integration verified
+↓
+milestone reached
+↓
+architecture reviewed
+↓
+unnecessary assumptions discarded
+↓
+architecture evolved
+```
+
+The history should not resemble a fully formed architecture suddenly appearing in one enormous commit.
+
+A deleted abstraction does not invalidate that history.
+
+It documents learning.
+
+---
+
+# 56. Roadmap Changes Must Be Visible
+
+Do not silently change important future architectural assumptions.
+
+When the roadmap changes meaningfully, explain:
+
+* what the previous assumption was;
+* what new evidence appeared;
+* what changed in the plan;
+* why the new direction is preferable;
+* whether any already-implemented code should eventually be reconsidered.
+
+The user should be able to follow not only the architecture but also the evolution of the architectural plan.
+
+Minor wording adjustments do not require ceremony.
+
+Meaningful changes in direction do.
+
+---
+
+# 57. Roadmap Items Must Not Become Zombie Requirements
+
+An item must not remain in the roadmap simply because it was once planned.
+
+During reassessment, ask whether each future item still has a reason to exist.
+
+Delete planned items that no longer have a concrete justification.
+
+Do not allow the roadmap to become a historical accumulation of every idea ever considered.
+
+The roadmap should represent the best **current** hypothesis.
+
+Git history can preserve previous hypotheses if necessary.
+
+---
+
+# 58. Milestones Are Checkpoints, Not Waterfalls
+
+Milestones establish orientation.
+
+They do not create a rigid waterfall process.
+
+For example, reaching:
+
+> "Current domain milestone complete"
+
+does not mean the domain can never change again.
+
+Infrastructure work may later reveal a missing domain concept.
+
+A new requirement may reopen domain modeling.
+
+A use case may expose an incorrect entity boundary.
+
+When this happens, return inward deliberately.
+
+Clean Architecture layers provide dependency direction.
+
+They do not require permanently finishing one layer before touching another.
+
+---
+
+# 59. The Agent Must Be Able to Answer Two Questions
+
+At any point in development, the agent should be able to answer:
+
+> **Where are we going?**
+
+using the roadmap and milestones.
+
+And:
+
+> **What are we doing right now?**
+
+using exactly one current conceptual unit.
+
+If the answer to the first question is unclear, reassess the roadmap.
+
+If the answer to the second contains multiple independent things, reduce the implementation scope.
+
+---
+
+# 60. Success Criterion
+
+The project being architecturally clean is necessary but not sufficient.
+
+The process succeeds when the user gradually begins to anticipate decisions such as:
+
+> "This is a journey rule; it belongs in the domain."
+
+> "This framework object should not cross this boundary."
+
+> "We now have enough evidence for a persistence abstraction."
+
+> "These two components are understood; now an integration test makes sense."
+
+> "This is only persistence representation, not necessarily the domain entity."
+
+> "This helper does not deserve to exist yet."
+
+> "We planned this abstraction, but the software no longer needs it."
+
+> "This milestone exposed a wrong assumption in our roadmap."
+
+The final objective is for the user to be capable of **thinking in Clean Architecture**, explaining the mathematics behind the simulation, and reasoning about a browser game's behavior.
+
+They should also be able to distinguish astronomical facts from game assumptions, physical time from presentation timing, and scientific data from rendered scale.
+
+A useful result combines that understanding with an enjoyable playable experience. Recognizing a clean repository after someone else built it is not enough.
+
+---
+
+# 61. Final Operating Rule
+
+For Coffee Among the Stars:
+
+```text
+FIRST:
+
+UNDERSTAND THE PROBLEM.
+
+BUILD A COHERENT ROADMAP.
+
+DEFINE CURRENT MILESTONES.
+
+TREAT THE ROADMAP AS A REVISABLE HYPOTHESIS.
+
+
+THEN, FOR EVERY STEP:
+
+REASSESS WHERE WE ARE IN THE ROADMAP.
+
+PROPOSE ONE THING.
+
+EXPLAIN:
+- WHAT IT IS.
+- WHY IT EXISTS.
+- WHY NOW.
+- WHY HERE.
+- WHY THIS FORM.
+- WHAT AN ALTERNATIVE WOULD BE.
+- WHY WE ARE NOT USING THAT ALTERNATIVE.
+- HOW IT RELATES TO THE CURRENT ROADMAP.
+
+CONFIRM THAT THE CURRENT UNIT HAS IMPLEMENTATION PERMISSION.
+DO NOT ASK AGAIN WHEN THAT PERMISSION HAS ALREADY BEEN GIVEN.
+
+IMPLEMENT ONE THING.
+
+VERIFY THAT ONE THING.
+
+EXPLAIN WHAT CHANGED.
+
+STOP.
+
+LET THE USER REVIEW, UNDERSTAND, COMMIT, AND PUSH.
+
+ONLY THEN PROPOSE THE NEXT THING.
+
+
+PERIODICALLY:
+
+REASSESS THE ROADMAP.
+
+REVIEW THE ARCHITECTURE.
+
+CORRECT FUTURE ASSUMPTIONS.
+
+REMOVE PLANNED ITEMS THAT LOST THEIR PURPOSE.
+
+PROPOSE REMOVAL OF IMPLEMENTED ITEMS THAT NO LONGER JUSTIFY THEIR EXISTENCE.
+
+NEVER CONFUSE THE PLAN WITH THE SOFTWARE.
+
+NEVER CONFUSE KNOWING THE FUTURE WITH PERMISSION TO BUILD IT.
+```
+
+The roadmap may look ahead.
+
+The repository must grow one understood thing at a time.

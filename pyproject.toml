@@ -1,0 +1,25 @@
+[project]
+name = "coffeeamongthestars"
+version = "0.1.0"
+description = "A cozy, browser-based space exploration game featuring real astronomical data, slow jazz, and coffee among the stars. Combines Python-powered simulations with a TypeScript interface for peaceful journeys through the cosmos."
+authors = [
+    {name = "André Carvalho",email = "me@andrev.me"}
+]
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "coverage (>=7.16.2,<8.0.0)",
+    "ruff (>=0.17.0,<0.18.0)",
+    "pyright (>=1.1.414,<2.0.0)",
+    "pre-commit (>=4.6.2,<5.0.0)"
+]
